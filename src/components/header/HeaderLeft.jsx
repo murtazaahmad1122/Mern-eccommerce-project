@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function HeaderLeft({ isSidebarOpen, onSidebarToggle, onMenuOpen }) {
   return (
     <div className="left-header">
@@ -14,9 +16,9 @@ function HeaderLeft({ isSidebarOpen, onSidebarToggle, onMenuOpen }) {
         </span>
       </a>
 
-      <a href="/" className="logo">
+      <Link to="/" className="logo" aria-label="Go to home page">
         <img src="/src/assets/img/logo/logo.png" alt="logo" />
-      </a>
+      </Link>
 
       <button type="button" className="mn-toggle-menu" onClick={onMenuOpen}>
         <div className="header-icon">

@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { NavLink } from "react-router-dom";
+import { navLinks } from "../../data/navigation";
 
 function MobileMenu({ isOpen, onClose }) {
   useEffect(() => {
@@ -30,45 +32,17 @@ function MobileMenu({ isOpen, onClose }) {
         <div className="mn-menu-inner">
           <div className="mn-menu-content">
             <ul>
-              <li>
-                <a href="/">Home</a>
-              </li>
-
-              <MobileDropdown title="Categories" items={["Classic", "List"]} />
-
-              <MobileDropdown
-                title="Products"
-                items={[
-                  "product detail",
-                  "Product accordion",
-                  "Product full width",
-                  "accordion full width",
-                ]}
-              />
-
-              <MobileDropdown
-                title="Pages"
-                items={[
-                  "About Us",
-                  "Contact Us",
-                  "Cart",
-                  "Checkout",
-                  "Compare",
-                  "Faq",
-                  "Login",
-                  "Register",
-                ]}
-              />
-
-              <MobileDropdown
-                title="Blog"
-                items={[
-                  "Right Sidebar",
-                  "Full Width",
-                  "Detail Right Sidebar",
-                  "Detail Full Width",
-                ]}
-              />
+              {navLinks.map((link) => (
+                <li key={link.path}>
+                  <NavLink
+                    to={link.path}
+                    onClick={onClose}
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -95,40 +69,6 @@ function MobileMenu({ isOpen, onClose }) {
         </div>
       </div>
     </>
-  );
-}
-
-function MobileDropdown({ title, items }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <li className={open ? "active" : ""}>
-      <span
-        className="menu-toggle"
-        role="button"
-        tabIndex="0"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setOpen(!open);
-          }
-        }}
-      ></span>
-
-      <a href="#" onClick={(event) => event.preventDefault()}>
-        {title}
-      </a>
-
-      <ul className={`sub-menu ${open ? "d-block" : ""}`}>
-        {items.map((item) => (
-          <li key={item}>
-            <a href="#">{item}</a>
-          </li>
-        ))}
-      </ul>
-    </li>
   );
 }
 
