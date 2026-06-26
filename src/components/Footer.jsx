@@ -1,4 +1,4 @@
-function Footer({ isSidebarOpen }) {
+function Footer({ isSidebarOpen, onOpenSearch }) {
   const year = new Date().getFullYear();
 
   return (
@@ -152,7 +152,7 @@ function Footer({ isSidebarOpen }) {
         </div>
       </footer>
 
-      <MobileFooterNav />
+      <MobileFooterNav onOpenSearch={onOpenSearch} />
     </>
   );
 }
@@ -176,12 +176,20 @@ function FooterLinks({ className, title, links }) {
   );
 }
 
-function MobileFooterNav() {
+function MobileFooterNav({ onOpenSearch }) {
   return (
     <div className="mn-footer-nav">
       <ul>
         <li>
-          <a href="#" className="mn-main-search mn-search-toggle">
+          <a
+            href="#"
+            className="mn-main-search mn-search-toggle"
+            onClick={(event) => {
+              event.preventDefault();
+              onOpenSearch?.();
+            }}
+            aria-label="Open search"
+          >
             <i className="ri-search-line"></i>
           </a>
         </li>

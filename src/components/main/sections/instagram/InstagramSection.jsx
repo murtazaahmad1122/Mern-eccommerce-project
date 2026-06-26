@@ -1,5 +1,12 @@
-import { useEffect, useRef } from "react";
 import InstagramItem from "./InstagramItem";
+
+const instagramImageModules = import.meta.glob(
+  "/src/assets/img/instagram/*.jpg",
+  {
+    eager: true,
+    import: "default",
+  }
+);
 
 const instagramImages = [
   "1.jpg",
@@ -9,38 +16,10 @@ const instagramImages = [
   "5.jpg",
   "6.jpg",
   "7.jpg",
-];
+].map((image) => instagramImageModules[`/src/assets/img/instagram/${image}`]);
 
 function InstagramSection() {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    if (!containerRef.current || typeof window === "undefined") {
-      return undefined;
-    }
-
-    const $ = window.jQuery || window.$;
-    if (!$ || !$.fn || !$.fn.infiniteslide) {
-      return undefined;
-    }
-
-    const $container = $(containerRef.current);
-    if ($container.data("insta-initialized")) {
-      return undefined;
-    }
-
-    $container.infiniteslide({
-      direction: "left",
-      speed: 50,
-      clone: 10,
-    });
-
-    $container.data("insta-initialized", true);
-
-    return () => {
-      $container.data("insta-initialized", false);
-    };
-  }, []);
+  const marqueeImages = [...instagramImages, ...instagramImages];
 
   return (
     <section className="mn-instagram module p-tb-15" id="insta">
@@ -48,9 +27,9 @@ function InstagramSection() {
 
       <div className="mn-insta-wrapper">
         <div className="mn-insta-outer">
-          <div className="insta-auto" ref={containerRef}>
-            {instagramImages.map((image) => (
-              <InstagramItem key={image} image={image} />
+          <div className="insta-auto" aria-label="Instagram posts">
+            {marqueeImages.map((image, index) => (
+              <InstagramItem key={`${image}-${index}`} image={image} />
             ))}
           </div>
         </div>

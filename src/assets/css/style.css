@@ -6600,6 +6600,55 @@ button.btn-close.qty_close {
   max-width: 100%;
 }
 
+.mn-instagram .mn-insta-outer {
+  overflow: hidden;
+}
+
+.mn-instagram .insta-auto {
+  width: max-content;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  animation: mn-instagram-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.mn-instagram .insta-auto:hover {
+  animation-play-state: paused;
+}
+
+.mn-instagram .mn-insta-item {
+  width: clamp(120px, 13vw, 190px);
+  flex: 0 0 clamp(120px, 13vw, 190px);
+  padding: 0 8px;
+}
+
+.mn-instagram .mn-insta-inner {
+  aspect-ratio: 1 / 1;
+}
+
+.mn-instagram .mn-insta-inner img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+@keyframes mn-instagram-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn-instagram .insta-auto {
+    animation: none;
+  }
+}
+
 /** About page **/
 .mn-about .mn-about-img {
   position: sticky;

@@ -1,7 +1,19 @@
-function HeaderIcons() {
+function HeaderIcons({ onOpenSearch }) {
   return (
     <div className="mn-tool-icons">
-      <ToolIcon className="mn-tool-search" linkClass="mn-main-search mn-search-toggle" icon="ri-search-line" />
+      <div className="mn-tool-search">
+        <a
+          href="#"
+          className="mn-main-search mn-search-toggle"
+          onClick={(event) => {
+            event.preventDefault();
+            onOpenSearch?.();
+          }}
+          aria-label="Open search"
+        >
+          <i className="ri-search-line"></i>
+        </a>
+      </div>
 
       <div className="mn-tool-user">
         <a href="#" className="mn-main-user">

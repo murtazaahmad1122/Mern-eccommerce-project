@@ -6,10 +6,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "./assets/js/vendor/jquery-3.7.1.min.js";
 import "./assets/js/vendor/owl.carousel.min.js";
-import "./assets/js/vendor/infiniteslidev2.js";
-import "./assets/js/vendor/jquery.zoom.min.js";
-import "./assets/js/vendor/slick.min.js";
-import "./assets/js/vendor/main.js";
 
 import "./assets/css/vendor/materialdesignicons.min.css";
 import "./assets/css/vendor/remixicon.css";

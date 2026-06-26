@@ -23,19 +23,6 @@ function PageHero({ title, description, eyebrow = "Welcome" }) {
   );
 }
 
-function PageSection({ title, children }) {
-  return (
-    <section className="container py-4">
-      <div className="row">
-        <div className="col-12">
-          <h3 className="mb-4">{title}</h3>
-          {children}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function HomePage({ onOpenQuickView }) {
   return <MainContent onOpenQuickView={onOpenQuickView} />;
 }

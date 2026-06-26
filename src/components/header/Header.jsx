@@ -4,7 +4,7 @@ import DesktopMenu from "./DesktopMenu";
 import MobileMenu from "./MobileMenu";
 import HeaderIcons from "./HeaderIcons";
 
-function Header({ isSidebarOpen, onSidebarToggle }) {
+function Header({ isSidebarOpen, onSidebarToggle, onOpenSearch }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -23,7 +23,7 @@ function Header({ isSidebarOpen, onSidebarToggle }) {
               isOpen={isMobileMenuOpen}
               onClose={() => setIsMobileMenuOpen(false)}
             />
-            <HeaderIcons />
+            <HeaderIcons onOpenSearch={onOpenSearch} />
           </div>
         </div>
       </div>
