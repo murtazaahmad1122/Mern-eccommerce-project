@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMediaUrl } from "../../utils/getMediaUrl";
 import { formatPrice } from "../../utils/formatPrice";
+import { useCommerce } from "../../context/CommerceContext";
 
 function ProductInfo({ product }) {
   const dealEndTime = product.dealEndDate
@@ -82,7 +83,7 @@ function ProductInfo({ product }) {
         </div>
 
         <ProductVariations product={product} />
-        <ProductActions stock={product.stock} />
+        <ProductActions product={product} />
       </div>
     </div>
   );
@@ -190,7 +191,10 @@ function ProductVariations({ product }) {
   );
 }
 
-function ProductActions({ stock }) {
+function ProductActions({ product }) {
+  const { addToCart, addToWishlist } = useCommerce();
+  const [status, setStatus] = useState("");
+  const stock = product.stock;
   const [quantity, setQuantity] = useState(1);
   const maxQuantity = Math.max(1, stock || 0);
 
@@ -237,6 +241,10 @@ function ProductActions({ stock }) {
             className="btn btn-primary mn-btn-2 mn-add-cart"
             disabled={stock <= 0}
             type="button"
+            onClick={async () => {
+              try { await addToCart(product, quantity); setStatus("Added to cart."); }
+              catch (error) { setStatus(error.response?.data?.message || error.message); }
+            }}
           >
             <span>{stock > 0 ? "Add To Cart" : "Out Of Stock"}</span>
           </button>
@@ -247,6 +255,10 @@ function ProductActions({ stock }) {
             className="mn-btn-group wishlist mn-wishlist"
             title="Wishlist"
             type="button"
+            onClick={async () => {
+              try { await addToWishlist(product); setStatus("Added to wishlist."); }
+              catch (error) { setStatus(error.response?.data?.message || error.message); }
+            }}
           >
             <i className="ri-heart-line"></i>
           </button>
@@ -262,6 +274,7 @@ function ProductActions({ stock }) {
           </button>
         </div>
       </div>
+      {status && <p className="m-t-15" role="status">{status}</p>}
     </div>
   );
 }

@@ -1,6 +1,23 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import { useCommerce } from "../context/CommerceContext";
 
 function RegisterPage() {
+  const navigate = useNavigate();
+  const { authenticate } = useCommerce();
+  const [form, setForm] = useState({ firstname: "", lastname: "", email: "", password: "" });
+  const [status, setStatus] = useState("");
+  const submit = async (event) => {
+    event.preventDefault(); setStatus("");
+    try {
+      const response = await axiosInstance.post("/auth/register", {
+        name: `${form.firstname} ${form.lastname}`.trim(), email: form.email, password: form.password,
+      });
+      authenticate(response.data); navigate("/");
+    } catch (error) { setStatus(error.response?.data?.message || "Unable to register."); }
+  };
+  const bind = (name) => ({ value: form[name], onChange: (e) => setForm({ ...form, [name]: e.target.value }) });
   return (
     <div className="mn-main-content">
       <div className="mn-breadcrumb m-b-30">
@@ -36,7 +53,8 @@ function RegisterPage() {
           <div className="mn-register-wrapper">
             <div className="mn-register-container">
               <div className="mn-register-form">
-                <form onSubmit={(e) => e.preventDefault()}>
+                <form onSubmit={submit}>
+                  {status && <div className="alert alert-danger">{status}</div>}
                   <span className="mn-register-wrap mn-register-half">
                     <label>First Name*</label>
                     <input
@@ -44,6 +62,7 @@ function RegisterPage() {
                       name="firstname"
                       placeholder="Enter your first name"
                       required
+                      {...bind("firstname")}
                     />
                   </span>
 
@@ -54,6 +73,7 @@ function RegisterPage() {
                       name="lastname"
                       placeholder="Enter your last name"
                       required
+                      {...bind("lastname")}
                     />
                   </span>
 
@@ -64,6 +84,7 @@ function RegisterPage() {
                       name="email"
                       placeholder="Enter your email add..."
                       required
+                      {...bind("email")}
                     />
                   </span>
 
@@ -75,6 +96,10 @@ function RegisterPage() {
                       placeholder="Enter your phone number"
                       required
                     />
+                  </span>
+                  <span className="mn-register-wrap mn-register-half">
+                    <label>Password*</label>
+                    <input type="password" placeholder="Minimum 6 characters" minLength="6" required {...bind("password")} />
                   </span>
 
                   <span className="mn-register-wrap">

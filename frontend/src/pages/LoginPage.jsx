@@ -1,6 +1,22 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import { useCommerce } from "../context/CommerceContext";
 
 function LoginPage() {
+  const navigate = useNavigate();
+  const { authenticate } = useCommerce();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [status, setStatus] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const submit = async (event) => {
+    event.preventDefault(); setSubmitting(true); setStatus("");
+    try {
+      const response = await axiosInstance.post("/auth/login", form);
+      authenticate(response.data); navigate("/");
+    } catch (error) { setStatus(error.response?.data?.message || "Unable to log in."); }
+    finally { setSubmitting(false); }
+  };
   return (
     <div className="mn-main-content">
       <div className="mn-breadcrumb m-b-30">
@@ -37,7 +53,8 @@ function LoginPage() {
             <div className="mn-login-wrapper">
               <div className="mn-login-container">
                 <div className="mn-login-form">
-                  <form onSubmit={(e) => e.preventDefault()}>
+                  <form onSubmit={submit}>
+                    {status && <div className="alert alert-danger">{status}</div>}
                     <span className="mn-login-wrap">
                       <label>Email Address*</label>
                       <input
@@ -45,6 +62,8 @@ function LoginPage() {
                         name="email"
                         placeholder="Enter your email add..."
                         required
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
                       />
                     </span>
 
@@ -55,6 +74,8 @@ function LoginPage() {
                         name="password"
                         placeholder="Enter your password"
                         required
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
                       />
                     </span>
 
@@ -75,8 +96,8 @@ function LoginPage() {
                         <Link to="/register">Create Account?</Link>
                       </span>
 
-                      <button className="mn-btn-1 btn" type="submit">
-                        <span>Login</span>
+                      <button className="mn-btn-1 btn" type="submit" disabled={submitting}>
+                        <span>{submitting ? "Signing in..." : "Login"}</span>
                       </button>
                     </span>
                   </form>

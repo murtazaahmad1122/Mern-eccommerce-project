@@ -27,6 +27,8 @@ import WishlistPage from "./pages/WishlistPage";
 import ProductDetailPage from "./pages/product-detail/ProductDetailPage";
 import FaqPage from "./pages/FaqPage";
 import TermsPage from "./pages/TermsPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
+import { CommerceProvider } from "./context/CommerceContext";
 
 function AppContent() {
   const [isSidebarToggled, setIsSidebarToggled] = useState(false);
@@ -84,6 +86,7 @@ function AppContent() {
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/order-success/:id" element={<OrderSuccessPage />} />
         </Routes>
 
         <Footer
@@ -109,7 +112,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <CommerceProvider>
+        <AppContent />
+      </CommerceProvider>
     </BrowserRouter>
   );
 }
