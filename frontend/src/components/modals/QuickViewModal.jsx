@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-
-const productPath = "/src/assets/img/product/";
+import { getMediaUrl } from "../../utils/getMediaUrl";
+import { formatPrice } from "../../utils/formatPrice";
 
 function QuickViewModal({ isOpen, product, onClose }) {
   useEffect(() => {
@@ -24,6 +24,9 @@ function QuickViewModal({ isOpen, product, onClose }) {
   if (!isOpen || !product) {
     return null;
   }
+
+  const mainImage = getMediaUrl(product.mainImg);
+  const hoverImage = getMediaUrl(product.hoverImg);
 
   return (
     <div
@@ -53,14 +56,14 @@ function QuickViewModal({ isOpen, product, onClose }) {
                         <div className="image">
                           <img
                             className="main-img"
-                            src={`${productPath}${product.mainImg}`}
+                            src={mainImage}
                             alt={`${product.title} preview`}
                           />
-                          {product.hoverImg ? (
+                          {hoverImage ? (
                             <img
                               className="hover-img"
-                              src={`${productPath}${product.hoverImg}`}
-                              alt={`${product.title} hover preview`}
+                              src={hoverImage}
+                              alt=""
                             />
                           ) : null}
                         </div>
@@ -78,14 +81,15 @@ function QuickViewModal({ isOpen, product, onClose }) {
                   </div>
 
                   <div className="mn-quickview-price">
-                    <span className="new-price">{product.price}</span>
-                    {product.oldPrice ? (
-                      <span className="old-price">{product.oldPrice}</span>
+                    <span className="new-price">{formatPrice(product.price)}</span>
+                    {product.oldPrice != null ? (
+                      <span className="old-price">{formatPrice(product.oldPrice)}</span>
                     ) : null}
                   </div>
 
                   <p className="mn-quickview-desc">
-                    {product.description || "Premium quality product with modern styling and excellent comfort."}
+                    {product.info ||
+                      "Premium quality product with modern styling and excellent comfort."}
                   </p>
 
                   <div className="mn-quickview-qty">

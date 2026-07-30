@@ -1,10 +1,111 @@
-import { useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import { getMediaUrl } from "../utils/getMediaUrl";
+
+const PREFERRED_SECTION_ORDER = [
+  "Fashion",
+  "Bakery",
+  "Vegetables",
+  "Fruits",
+];
+
+const sidebarIcons = import.meta.glob("../assets/img/icons/*", {
+  eager: true,
+  import: "default",
+});
+
+function getSectionOrder(sectionName) {
+  const index = PREFERRED_SECTION_ORDER.findIndex(
+    (name) => name.toLowerCase() === sectionName.toLowerCase(),
+  );
+
+  return index === -1 ? Number.POSITIVE_INFINITY : index;
+}
+
+function resolveCategoryImage(value) {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  if (/^(?:https?:|data:|blob:|\/uploads\/)/i.test(value)) {
+    return getMediaUrl(value);
+  }
+
+  const filename = value.split(/[\\/]/).pop();
+  return sidebarIcons[`../assets/img/icons/${filename}`] || getMediaUrl(value);
+}
 
 function Sidebar({ isOpen, onClose }) {
+  const [sections, setSections] = useState([]);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const toggleDropdown = (title) => {
-    setOpenDropdown((current) => (current === title ? null : title));
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadSidebarCategories() {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const response = await axiosInstance.get("/categories/sidebar", {
+          signal: controller.signal,
+        });
+        const groupedCategories = response.data?.data;
+
+        if (
+          !groupedCategories ||
+          typeof groupedCategories !== "object" ||
+          Array.isArray(groupedCategories)
+        ) {
+          throw new Error("Invalid sidebar category response.");
+        }
+
+        const nextSections = Object.entries(groupedCategories)
+          .filter(([, categories]) => Array.isArray(categories))
+          .sort(([sectionA], [sectionB]) => {
+            const orderDifference =
+              getSectionOrder(sectionA) - getSectionOrder(sectionB);
+
+            return Number.isNaN(orderDifference)
+              ? sectionA.localeCompare(sectionB)
+              : orderDifference;
+          })
+          .map(([name, categories]) => ({
+            name,
+            categories: [...categories].sort(
+              (categoryA, categoryB) =>
+                (categoryA.sortOrder ?? 0) - (categoryB.sortOrder ?? 0),
+            ),
+          }));
+
+        setSections(nextSections);
+      } catch (requestError) {
+        if (requestError.code !== "ERR_CANCELED") {
+          setError(
+            requestError.response?.data?.message ||
+              "Unable to load sidebar categories.",
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadSidebarCategories();
+
+    return () => controller.abort();
+  }, [reloadKey]);
+
+  const toggleDropdown = (categoryId) => {
+    setOpenDropdown((current) =>
+      current === categoryId ? null : categoryId,
+    );
   };
 
   return (
@@ -24,83 +125,59 @@ function Sidebar({ isOpen, onClose }) {
           ></button>
 
           <ul className="mn-sb-list">
-            <li className="mn-sb-title condense">
-              <span>Fashion</span>
-            </li>
+            {isLoading && (
+              <SidebarStatus message="Loading categories..." />
+            )}
 
-            <SidebarDropdown
-              icon="clothes-2.svg"
-              title="Clothes"
-              items={["T-shirts", "Shirts", "gowns", "Dresses", "sharees", "jeans"]}
-              isOpen={openDropdown === "Clothes"}
-              onToggle={() => toggleDropdown("Clothes")}
-            />
+            {!isLoading && error && (
+              <SidebarStatus message={error}>
+                <button
+                  type="button"
+                  onClick={() => setReloadKey((current) => current + 1)}
+                >
+                  Try again
+                </button>
+              </SidebarStatus>
+            )}
 
-            <SidebarItem icon="shoes.svg" title="Shoes" />
-            <SidebarItem icon="glasses.svg" title="glasses" />
+            {!isLoading && !error && sections.length === 0 && (
+              <SidebarStatus message="No categories are available." />
+            )}
 
-            <SidebarDropdown
-              icon="bag.svg"
-              title="Bags"
-              items={["Purse", "Bags", "wallet"]}
-              isOpen={openDropdown === "Bags"}
-              onToggle={() => toggleDropdown("Bags")}
-            />
+            {!isLoading &&
+              !error &&
+              sections.map((section) => (
+                <Fragment key={section.name}>
+                  <li className="mn-sb-title condense">
+                    <span>{section.name}</span>
+                  </li>
 
-            <SidebarItem icon="hat.svg" title="Hat" />
+                  {section.categories.map((category) => {
+                    const categoryKey =
+                      category._id || category.slug || category.name;
+                    const subcategories = Array.isArray(category.subcategories)
+                      ? category.subcategories.filter(Boolean)
+                      : [];
 
-            <SidebarDropdown
-              icon="makeup.svg"
-              title="Makeup"
-              items={["Lipstick", "eye liner", "nail paint", "Makeup kit"]}
-              isOpen={openDropdown === "Makeup"}
-              onToggle={() => toggleDropdown("Makeup")}
-            />
-
-            <SidebarDropdown
-              icon="cosmetics.svg"
-              title="Cosmetics"
-              items={["Shampoo", "face wash", "body wash", "sunscreen", "serum"]}
-              isOpen={openDropdown === "Cosmetics"}
-              onToggle={() => toggleDropdown("Cosmetics")}
-            />
-
-            <li className="mn-sb-title condense">
-              <span>Bakery</span>
-            </li>
-
-            <SidebarDropdown
-              icon="cake.svg"
-              title="Cake"
-              items={["cup cake", "pastry", "Cake"]}
-              isOpen={openDropdown === "Cake"}
-              onToggle={() => toggleDropdown("Cake")}
-            />
-            <SidebarItem icon="bread.svg" title="Bread" />
-
-            <li className="mn-sb-title condense">
-              <span>Vegetables</span>
-            </li>
-
-            <SidebarDropdown
-              icon="tuber.svg"
-              title="tuber root"
-              items={["Sweet Potato", "Ginger", "cassava"]}
-              isOpen={openDropdown === "tuber root"}
-              onToggle={() => toggleDropdown("tuber root")}
-            />
-
-            <SidebarItem icon="tomato.svg" title="Tomato" />
-            <SidebarItem icon="lemon.svg" title="Lemon" />
-
-            <li className="mn-sb-title condense">
-              <span>Fruits</span>
-            </li>
-
-            <SidebarItem icon="avocado.svg" title="avocado" />
-            <SidebarItem icon="strawberry.svg" title="strawberry" />
-            <SidebarItem icon="cherry.svg" title="cherry" />
-            <SidebarItem icon="lychee.svg" title="Lychee" />
+                    return subcategories.length > 0 ? (
+                      <SidebarDropdown
+                        key={categoryKey}
+                        category={category}
+                        items={subcategories}
+                        isOpen={openDropdown === categoryKey}
+                        onToggle={() => toggleDropdown(categoryKey)}
+                        onNavigate={onClose}
+                      />
+                    ) : (
+                      <SidebarItem
+                        key={categoryKey}
+                        category={category}
+                        onNavigate={onClose}
+                      />
+                    );
+                  })}
+                </Fragment>
+              ))}
           </ul>
         </div>
       </div>
@@ -108,52 +185,84 @@ function Sidebar({ isOpen, onClose }) {
   );
 }
 
-function SidebarItem({ icon, title }) {
+function SidebarStatus({ message, children }) {
   return (
-    <li className="mn-sb-item sb-drop-item">
-      <a href="#" className="mn-drop-toggle">
-        <img src={`/src/assets/img/icons/${icon}`} alt={title} />
-        <span className="condense">{title}</span>
-      </a>
+    <li className="mn-sidebar-api-status">
+      <span>{message}</span>
+      {children}
     </li>
   );
 }
 
-function SidebarDropdown({ icon, title, items, isOpen, onToggle }) {
-  const handleKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onToggle();
-    }
-  };
+function CategoryIcon({ category }) {
+  const [hasError, setHasError] = useState(false);
+  const imageUrl = resolveCategoryImage(category.image);
+
+  if (!imageUrl || hasError) {
+    return (
+      <span className="mn-sidebar-icon-fallback" aria-hidden="true">
+        {category.name?.charAt(0)?.toUpperCase() || "?"}
+      </span>
+    );
+  }
 
   return (
+    <img
+      src={imageUrl}
+      alt=""
+      aria-hidden="true"
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
+function SidebarItem({ category, onNavigate }) {
+  return (
     <li className="mn-sb-item sb-drop-item">
-      <a
-        href="#"
-        className={`mn-drop-toggle ${isOpen ? "active-nav" : ""}`}
-        role="button"
-        tabIndex={0}
-        aria-expanded={isOpen}
-        onClick={(event) => {
-          event.preventDefault();
-          onToggle();
-        }}
-        onKeyDown={handleKeyDown}
+      <Link
+        to={`/shop?category=${encodeURIComponent(category.name)}`}
+        className="mn-drop-toggle"
+        onClick={onNavigate}
       >
-        <img src={`/src/assets/img/icons/${icon}`} alt={`${title} icon`} />
+        <CategoryIcon category={category} />
+        <span className="condense">{category.name}</span>
+      </Link>
+    </li>
+  );
+}
+
+function SidebarDropdown({
+  category,
+  items,
+  isOpen,
+  onToggle,
+  onNavigate,
+}) {
+  return (
+    <li className="mn-sb-item sb-drop-item">
+      <button
+        type="button"
+        className={`mn-drop-toggle ${isOpen ? "active-nav" : ""}`}
+        aria-expanded={isOpen}
+        onClick={onToggle}
+      >
+        <CategoryIcon category={category} />
         <span className="condense">
-          {title}
+          {category.name}
           <i className="drop-arrow ri-arrow-down-s-line"></i>
         </span>
-      </a>
+      </button>
 
       <ul className="mn-sb-drop" style={{ display: isOpen ? "block" : "none" }}>
         {items.map((item) => (
           <li className="list" key={item}>
-            <a href="#" className="mn-page-link drop">
+            <Link
+              to={`/shop?category=${encodeURIComponent(item)}`}
+              className="mn-page-link drop"
+              onClick={onNavigate}
+            >
               {item}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>

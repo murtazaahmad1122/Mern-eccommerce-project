@@ -1,0 +1,19 @@
+{
+  "name": "mern-commerce-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MERN ecommerce storefront, admin dashboard, and REST API",
+  "scripts": {
+    "install:all": "npm ci --prefix backend && npm ci --prefix frontend && npm ci --prefix admin",
+    "dev:api": "npm run dev --prefix backend",
+    "dev:store": "npm run dev --prefix frontend",
+    "dev:admin": "npm run dev --prefix admin",
+    "build": "npm run build --prefix frontend && npm run build --prefix admin",
+    "lint": "npm run lint --prefix frontend && npm run lint --prefix admin",
+    "check:api": "node --check backend/server.js",
+    "verify": "npm run lint && npm run build && npm run check:api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,7 +1,21 @@
-function HeaderIcons() {
+import { Link } from "react-router-dom";
+
+function HeaderIcons({ onOpenSearch, onCartOpen, onWishlistOpen }) {
   return (
     <div className="mn-tool-icons">
-      <ToolIcon className="mn-tool-search" linkClass="mn-main-search mn-search-toggle" icon="ri-search-line" />
+      <div className="mn-tool-search">
+        <a
+          href="#"
+          className="mn-main-search mn-search-toggle"
+          onClick={(event) => {
+            event.preventDefault();
+            onOpenSearch?.();
+          }}
+          aria-label="Open search"
+        >
+          <i className="ri-search-line"></i>
+        </a>
+      </div>
 
       <div className="mn-tool-user">
         <a href="#" className="mn-main-user">
@@ -9,11 +23,15 @@ function HeaderIcons() {
         </a>
 
         <ul className="sub-menu">
-          {["Login", "Register", "Checkout"].map((item) => (
-            <li key={item}>
-              <a href="#">{item}</a>
-            </li>
-          ))}
+          <li>
+            <Link to="/login">Login</Link>
+          </li>
+          <li>
+            <a href="register">Register</a>
+          </li>
+          <li>
+            <Link to="/checkout">Checkout</Link>
+          </li>
         </ul>
       </div>
 
@@ -23,6 +41,7 @@ function HeaderIcons() {
         icon="ri-heart-line"
         label="3"
         labelClass="label lbl-1"
+        onClick={onWishlistOpen}
       />
 
       <ToolIcon
@@ -31,15 +50,23 @@ function HeaderIcons() {
         icon="ri-shopping-cart-line"
         label="4"
         labelClass="label lbl-2"
+        onClick={onCartOpen}
       />
     </div>
   );
 }
 
-function ToolIcon({ className, linkClass, icon, label, labelClass }) {
+function ToolIcon({ className, linkClass, icon, label, labelClass, onClick }) {
   return (
     <div className={className}>
-      <a href="#" className={linkClass}>
+      <a
+        href="#"
+        className={linkClass}
+        onClick={(event) => {
+          event.preventDefault();
+          onClick?.();
+        }}
+      >
         {label && <span className={labelClass}>{label}</span>}
         <i className={icon}></i>
       </a>

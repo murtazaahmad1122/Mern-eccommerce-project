@@ -1,4 +1,24 @@
-function Footer({ isSidebarOpen }) {
+import { Link } from "react-router-dom";
+
+const footerLinkMap = {
+  "About us": "/",
+  Delivery: "/shop",
+  "Legal Notice": "/faq",
+  "Terms of use": "/terms",
+  "Secure payment": "/checkout",
+  "Contact us": "/contact",
+  "Sign In": "/login",
+  "View Cart": "/cart",
+  "Return Policy": "/faq",
+  Fashion: "/shop",
+  Cosmetics: "/shop",
+  "Bags & Purse": "/shop",
+  Shoes: "/shop",
+  Belts: "/shop",
+  Perfumes: "/shop",
+};
+
+function Footer({ isSidebarOpen, onOpenSearch, onWishlistOpen }) {
   const year = new Date().getFullYear();
 
   return (
@@ -152,7 +172,10 @@ function Footer({ isSidebarOpen }) {
         </div>
       </footer>
 
-      <MobileFooterNav />
+      <MobileFooterNav
+        onOpenSearch={onOpenSearch}
+        onWishlistOpen={onWishlistOpen}
+      />
     </>
   );
 }
@@ -166,7 +189,7 @@ function FooterLinks({ className, title, links }) {
           <ul className="align-items-center">
             {links.map((link) => (
               <li className="mn-footer-link" key={link}>
-                <a href="#">{link}</a>
+                <Link to={footerLinkMap[link] || "#"}>{link}</Link>
               </li>
             ))}
           </ul>
@@ -176,12 +199,20 @@ function FooterLinks({ className, title, links }) {
   );
 }
 
-function MobileFooterNav() {
+function MobileFooterNav({ onOpenSearch, onWishlistOpen }) {
   return (
     <div className="mn-footer-nav">
       <ul>
         <li>
-          <a href="#" className="mn-main-search mn-search-toggle">
+          <a
+            href="#"
+            className="mn-main-search mn-search-toggle"
+            onClick={(event) => {
+              event.preventDefault();
+              onOpenSearch?.();
+            }}
+            aria-label="Open search"
+          >
             <i className="ri-search-line"></i>
           </a>
         </li>
@@ -196,7 +227,14 @@ function MobileFooterNav() {
           </a>
         </li>
         <li>
-          <a href="#" className="mn-main-wishlist mn-wishlist-toggle">
+          <a
+            href="#"
+            className="mn-main-wishlist mn-wishlist-toggle"
+            onClick={(event) => {
+              event.preventDefault();
+              onWishlistOpen?.();
+            }}
+          >
             <span className="label lbl-1">3</span>
             <i className="ri-heart-line"></i>
             <span>3</span>

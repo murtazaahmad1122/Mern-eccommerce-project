@@ -1,66 +1,29 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import useApiCollection from "../../../hooks/useApiCollection";
+import { getMediaUrl } from "../../../utils/getMediaUrl";
+import SectionStatus from "./SectionStatus";
 
-const categoryImages = import.meta.glob("/src/assets/img/category/*.jpg", {
-  eager: true,
-  import: "default",
-});
-
-const categories = [
+const categoryAssets = import.meta.glob(
+  ["/src/assets/img/icons/*", "/src/assets/img/category/*"],
   {
-    cardClass: "cat-card-1",
-    discount: "35%",
-    label: "Fashion",
-    title: "Clothes",
-    items: 16,
-    images: [1, 2, 3],
+    eager: true,
+    import: "default",
   },
-  {
-    cardClass: "cat-card-2",
-    discount: "22%",
-    label: "Generic",
-    title: "Cosmetics",
-    items: 45,
-    images: [4, 5, 6],
-  },
-  {
-    cardClass: "cat-card-3",
-    discount: "65%",
-    label: "Stylish",
-    title: "Shoes",
-    items: 58,
-    images: [7, 8, 9],
-  },
-  {
-    cardClass: "cat-card-4",
-    discount: "45%",
-    label: "Digital",
-    title: "watches",
-    items: 64,
-    images: [10, 11, 12],
-  },
-  {
-    cardClass: "cat-card-5",
-    discount: "63%",
-    label: "leather",
-    title: "belts",
-    items: 75,
-    images: [13, 14, 15],
-  },
-  {
-    cardClass: "cat-card-6",
-    discount: "23%",
-    label: "Cotton",
-    title: "Bags",
-    items: 15,
-    images: [16, 17, 18],
-  },
-];
+);
 
 function CategorySection() {
   const carouselRef = useRef(null);
+  const {
+    items: categories,
+    loading,
+    errorMessage,
+    retry,
+  } = useApiCollection("/categories", "Unable to load categories.");
+  const categoryCount = categories.length;
 
   useEffect(() => {
-    if (!carouselRef.current || typeof window === "undefined") {
+    if (!carouselRef.current || categoryCount === 0) {
       return undefined;
     }
 
@@ -70,11 +33,13 @@ function CategorySection() {
     }
 
     const carousel = $(carouselRef.current);
+    const hasMultiplePages = categoryCount > 3;
+
     carousel.owlCarousel({
-      loop: true,
-      nav: true,
+      loop: hasMultiplePages,
+      nav: hasMultiplePages,
       dots: false,
-      autoplay: true,
+      autoplay: hasMultiplePages,
       autoplayTimeout: 4000,
       autoplayHoverPause: true,
       smartSpeed: 600,
@@ -89,46 +54,110 @@ function CategorySection() {
     return () => {
       carousel.trigger("destroy.owl.carousel");
     };
-  }, []);
+  }, [categoryCount]);
+
+  if (loading) {
+    return (
+      <section className="mn-category p-tb-15">
+        <SectionStatus message="Loading categories..." />
+      </section>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <section className="mn-category p-tb-15">
+        <SectionStatus message={errorMessage} onRetry={retry} />
+      </section>
+    );
+  }
+
+  if (categoryCount === 0) {
+    return (
+      <section className="mn-category p-tb-15">
+        <SectionStatus message="No categories are available." />
+      </section>
+    );
+  }
 
   return (
     <section className="mn-category p-tb-15">
       <div className="mn-cat owl-carousel" ref={carouselRef}>
-        {categories.map((category) => (
-          <CategoryCard key={category.cardClass} category={category} />
+        {categories.map((category, index) => (
+          <CategoryCard
+            cardClass={`cat-card-${(index % 6) + 1}`}
+            category={category}
+            key={category._id}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function CategoryCard({ category }) {
+function CategoryCard({ category, cardClass }) {
+  const previewImages = [
+    ...(Array.isArray(category.previewImages) ? category.previewImages : []),
+    category.image,
+  ]
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .slice(0, 3);
+  const productLabel = `${category.productCount || 0} ${
+    category.productCount === 1 ? "product" : "products"
+  }`;
+
   return (
-    <div className={`mn-cat-card ${category.cardClass}`}>
+    <div className={`mn-cat-card ${cardClass}`}>
       <p className="lbl">
-        <span>{category.discount}</span>
+        <span>{category.section}</span>
       </p>
 
-      <span className="bg">{category.discount}</span>
+      <span className="bg">{category.name}</span>
 
-      <h4>{category.label}</h4>
-      <h3>{category.title}</h3>
-      <p>Items ({category.items})</p>
+      <h4>{productLabel}</h4>
+      <h3>{category.name}</h3>
+      <p>
+        {category.subcategories?.length || 0}{" "}
+        {category.subcategories?.length === 1 ? "subcategory" : "subcategories"}
+      </p>
 
-      <ul>
-        {category.images.map((imageNumber) => {
-          const imagePath = `/src/assets/img/category/${imageNumber}.jpg`;
-          return (
-            <li key={imageNumber}>
-              <a href="#" aria-label={`View ${category.title} category`}>
-                <span className="visually-hidden">{category.title}</span>
-                <img src={categoryImages[imagePath]} alt={`${category.title} category`} />
-              </a>
+      {previewImages.length > 0 && (
+        <ul>
+          {previewImages.map((image) => (
+            <li key={image}>
+              <Link
+                aria-label={`Shop ${category.name}`}
+                to={`/shop?category=${encodeURIComponent(category.name)}`}
+              >
+                <img
+                  src={resolveCategoryImage(image)}
+                  alt={`${category.name} category`}
+                />
+              </Link>
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
+  );
+}
+
+function resolveCategoryImage(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^(?:https?:|data:|blob:|\/uploads\/)/i.test(value)) {
+    return getMediaUrl(value);
+  }
+
+  const filename = value.split(/[\\/]/).pop();
+
+  return (
+    categoryAssets[`/src/assets/img/icons/${filename}`] ||
+    categoryAssets[`/src/assets/img/category/${filename}`] ||
+    value
   );
 }
 
